@@ -401,6 +401,93 @@
       .social-icon { width: 36px; height: 36px; }
       .socials { gap: 8px; }
     }
+
+    /* ── Enhanced Interactions ── */
+
+    /* Override container animation — buttons animate individually */
+    .links { animation: none !important; }
+
+    /* Greeting badge */
+    .greeting-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: var(--navy); font-size: 12px; font-weight: 500;
+      padding: 5px 14px; border-radius: 20px; margin-bottom: 14px;
+      letter-spacing: 0.5px;
+    }
+    .greeting-dot {
+      width: 6px; height: 6px; background: var(--navy); border-radius: 50%;
+      animation: dotPulse 1.8s ease infinite;
+    }
+    @keyframes dotPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.6); }
+    }
+
+    /* Ripple click effect */
+    .ripple-fx {
+      position: absolute; border-radius: 50%; pointer-events: none;
+      background: rgba(255,255,255,0.55);
+      transform: scale(0);
+      animation: rippleAnim 0.65s linear forwards;
+    }
+    @keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
+
+    /* Allow overflow clip for ripple + shine */
+    .link-btn { overflow: hidden; }
+
+    /* Shine sweep on hover */
+    .link-btn::after {
+      content: ''; position: absolute; top: 0; left: -100%;
+      width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.32), transparent);
+      transform: skewX(-18deg);
+    }
+    .link-btn:hover::after { left: 160%; transition: left 0.55s ease; }
+
+    /* Individual button entrance animation */
+    .link-btn.bp-in {
+      animation: btnSlideUp 0.55s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+    }
+    @keyframes btnSlideUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Enhanced social hover */
+    .social-icon {
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+    .social-icon:hover {
+      transform: translateY(-6px) scale(1.15) !important;
+      box-shadow: 0 10px 20px rgba(26,39,68,0.18);
+      background: var(--navy); color: white; border-color: var(--navy);
+    }
+
+    /* Button press feel */
+    .link-btn:active { transform: scale(0.96) !important; transition: transform 0.08s ease !important; }
+
+    /* Name shimmer gradient */
+    .name {
+      background: linear-gradient(90deg, var(--navy) 0%, #4a6299 50%, var(--navy) 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: nameFlow 6s linear infinite;
+    }
+    @keyframes nameFlow {
+      0%   { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+
+    /* View count pill */
+    .view-count {
+      font-size: 11px; color: var(--muted); opacity: 0.55;
+      margin-top: 6px; display: flex; align-items: center;
+      justify-content: center; gap: 5px;
+    }
+    .view-dot { width: 4px; height: 4px; background: var(--gold); border-radius: 50%; }
+
   </style>
 </head>
 <body>
@@ -419,6 +506,7 @@
 
   <!-- Profile -->
   <div class="profile">
+    <div class="greeting-badge"><span class="greeting-dot"></span><span id="bp-greeting">ยินดีต้อนรับ</span></div>
     <h1 class="name">Boorapa<br>Ponthisang</h1>
 
     <!-- Social Icons -->
@@ -552,9 +640,52 @@
   <div class="footer">
     <p class="footer-name">Boorapa Ponthisang</p>
     <p class="footer-copy">© 2025</p>
+    <div class="view-count"><span class="view-dot"></span><span id="bp-views">...</span></div>
   </div>
 
 </div>
 
+
+<script>
+  /* Time-based greeting */
+  const greetEl = document.getElementById('bp-greeting');
+  if (greetEl) {
+    const h = new Date().getHours();
+    greetEl.textContent = h < 12 ? 'สวัสดีตอนเช้า ☀️' : h < 18 ? 'สวัสดีตอนบ่าย 🌤' : h < 22 ? 'สวัสดีตอนเย็น 🌆' : 'สวัสดีตอนดึก 🌙';
+  }
+
+  /* Staggered button entrance */
+  const btns = document.querySelectorAll('.link-btn');
+  btns.forEach(b => { b.style.opacity = '0'; });
+  window.addEventListener('load', () => {
+    btns.forEach((b, i) => {
+      setTimeout(() => {
+        b.style.opacity = '';
+        b.classList.add('bp-in');
+      }, 300 + i * 90);
+    });
+  });
+
+  /* Ripple on click */
+  btns.forEach(btn => {
+    btn.addEventListener('pointerdown', function(e) {
+      const r = document.createElement('span');
+      r.className = 'ripple-fx';
+      const rect = this.getBoundingClientRect();
+      const s = Math.max(rect.width, rect.height);
+      r.style.cssText = 'width:'+s+'px;height:'+s+'px;left:'+(e.clientX-rect.left-s/2)+'px;top:'+(e.clientY-rect.top-s/2)+'px';
+      this.appendChild(r);
+      setTimeout(() => r.remove(), 700);
+    });
+  });
+
+  /* View counter */
+  const vcEl = document.getElementById('bp-views');
+  if (vcEl) {
+    const n = (parseInt(localStorage.getItem('bp_vc') || '0') + 1);
+    localStorage.setItem('bp_vc', n);
+    vcEl.textContent = n.toLocaleString() + ' views';
+  }
+</script>
 </body>
 </html>
